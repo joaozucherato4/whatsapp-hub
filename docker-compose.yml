@@ -1,4 +1,3 @@
-version: "3.8"
 
 services:
   postgres:
@@ -14,7 +13,7 @@ services:
     networks: [internal]
 
   evolution-api:
-    image: atendai/evolution-api:latest
+    image: atendai/evolution-api:v2.2.0
     restart: always
     environment:
       AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
