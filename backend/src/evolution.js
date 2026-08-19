@@ -35,3 +35,15 @@ export async function sendText(instanceName, jid, text) {
   });
   return data;
 }
+
+export async function findChats(instanceName) {
+  const { data } = await client.post(`/chat/findChats/${instanceName}`, {});
+  return data;
+}
+
+export async function findMessages(instanceName, remoteJid) {
+  const { data } = await client.post(`/chat/findMessages/${instanceName}`, {
+    where: { key: { remoteJid } },
+  });
+  return data?.messages?.records || data || [];
+}

@@ -11,10 +11,11 @@ import instancesRoutes from "./routes/instances.js";
 import conversationsRoutes from "./routes/conversations.js";
 import webhooksRoutes from "./routes/webhooks.js";
 import templatesRoutes from "./routes/templates.js";
+import webhookInfoRoutes from "./routes/webhook-info.js";
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
 
 // Publicas
 app.use("/auth", authRoutes);
@@ -24,6 +25,7 @@ app.use("/webhooks", webhooksRoutes); // Evolution + Hotmart + Kiwify validam po
 app.use("/api/instances", authMiddleware, instancesRoutes);
 app.use("/api/conversations", authMiddleware, conversationsRoutes);
 app.use("/api/templates", authMiddleware, templatesRoutes);
+app.use("/api/webhook-info", authMiddleware, webhookInfoRoutes);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 

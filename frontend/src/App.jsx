@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import api, { authApi } from "./api";
 import NewInstanceModal from "./components/NewInstanceModal.jsx";
+import AutomationsModal from "./components/AutomationsModal.jsx";
 
 const COUNTRY_FLAGS = {
   US: "🇺🇸", GB: "🇬🇧", CA: "🇨🇦", AU: "🇦🇺", IE: "🇮🇪",
   PT: "🇵🇹", BR: "🇧🇷", FR: "🇫🇷", IT: "🇮🇹", ES: "🇪🇸", ID: "🇮🇩",
 };
+
+function displayName(conv) {
+  if (conv.contact_name && conv.contact_name !== conv.contact_jid) return conv.contact_name;
+  if (conv.contact_jid?.includes("@lid")) return "Contato (WhatsApp)";
+  const digits = conv.contact_jid?.split("@")[0] || "";
+  return digits.length >= 8 ? `+${digits}` : conv.contact_jid;
+}
 
 function LoginScreen({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -44,6 +52,7 @@ export default function App() {
   const [activeConv, setActiveConv] = useState(null);
   const [messages, setMessages] = useState([]);
   const [showNewInstance, setShowNewInstance] = useState(false);
+  const [showAutomations, setShowAutomations] = useState(false);
   const [draft, setDraft] = useState("");
   const wsRef = useRef(null);
 
@@ -101,6 +110,19 @@ export default function App() {
     setDraft("");
   }
 
+  async function deleteInstance(inst, e) {
+    e.stopPropagation();
+    const ok = window.confirm(`Excluir a instância ${inst.country} · ${inst.language}? Isso desconecta o WhatsApp e apaga as conversas dela.`);
+    if (!ok) return;
+    await api.delete(`/instances/${inst.id}`);
+    if (activeInstance?.id === inst.id) {
+      setActiveInstance(null);
+      setConversations([]);
+      setActiveConv(null);
+    }
+    loadInstances();
+  }
+
   if (!agent) return <LoginScreen onLogin={setAgent} />;
 
   return (
@@ -110,14 +132,29 @@ export default function App() {
           <div
             key={inst.id}
             className={`instance-icon ${activeInstance?.id === inst.id ? "active" : ""}`}
-            title={`${inst.country} - ${inst.language} (${inst.status})`}
+            title={`${inst.country} - ${inst.language} (id: ${inst.id}, ${inst.status})`}
             onClick={() => selectInstance(inst)}
+            style={{ position: "relative" }}
           >
             {inst.flag_emoji || COUNTRY_FLAGS[inst.country] || inst.country}
+            <span
+              onClick={(e) => deleteInstance(inst, e)}
+              title="Excluir instância"
+              style={{
+                position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%",
+                background: "#e0555a", color: "white", fontSize: 10, display: "flex",
+                alignItems: "center", justifyContent: "center", cursor: "pointer",
+              }}
+            >
+              ×
+            </span>
           </div>
         ))}
         <div className="instance-icon add" title="Nova instancia" onClick={() => setShowNewInstance(true)}>
           +
+        </div>
+        <div className="instance-icon" title="Automações (Hotmart/Kiwify)" onClick={() => setShowAutomations(true)} style={{ marginTop: "auto", marginBottom: 12 }}>
+          ⚙
         </div>
       </div>
 
@@ -132,10 +169,10 @@ export default function App() {
               className={`conv-item ${activeConv?.id === c.id ? "active" : ""}`}
               onClick={() => openConversation(c)}
             >
-              <div className="avatar">{(c.contact_name || "?")[0].toUpperCase()}</div>
+              <div className="avatar">{displayName(c)[0].toUpperCase()}</div>
               <div className="conv-meta">
-                <div className="conv-name">{c.contact_name || c.contact_jid}</div>
-                <div className="conv-preview">{c.status}</div>
+                <div className="conv-name">{displayName(c)}</div>
+                <div className="conv-preview">{c.last_message_preview || "Sem mensagens"}</div>
               </div>
               <span className={`conv-status ${c.status}`}>{c.status}</span>
             </div>
@@ -170,6 +207,10 @@ export default function App() {
           <div className="chat-empty">Selecione uma conversa para comecar</div>
         )}
       </div>
+
+      {showAutomations && (
+        <AutomationsModal instances={instances} onClose={() => setShowAutomations(false)} />
+      )}
 
       {showNewInstance && (
         <NewInstanceModal

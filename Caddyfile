@@ -1,4 +1,9 @@
 179-198-120-137.sslip.io {
+	tls internal
+
+	handle /auth/* {
+		reverse_proxy backend:4000
+	}
 	handle /webhooks/* {
 		reverse_proxy backend:4000
 	}

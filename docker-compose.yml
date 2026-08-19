@@ -13,11 +13,20 @@ services:
     networks: [internal]
 
   evolution-api:
-    image: atendai/evolution-api:v2.2.0
+    image: evoapicloud/evolution-api:latest
     restart: always
     environment:
       AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
-      DATABASE_ENABLED: "false"
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: "postgresql"
+      DATABASE_CONNECTION_URI: "postgresql://whzap:${POSTGRES_PASSWORD}@postgres:5432/whzap?schema=evolution"
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"
+      DATABASE_SAVE_MESSAGE_UPDATE: "true"
+      DATABASE_SAVE_DATA_CONTACTS: "true"
+      DATABASE_SAVE_DATA_CHATS: "true"
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
       CONFIG_SESSION_PHONE_CLIENT: "BotyZap"
       WEBHOOK_GLOBAL_URL: "http://backend:4000/webhooks/evolution"
       WEBHOOK_GLOBAL_ENABLED: "true"
@@ -48,8 +57,7 @@ services:
     image: caddy:2-alpine
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      - "8443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data

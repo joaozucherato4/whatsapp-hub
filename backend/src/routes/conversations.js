@@ -9,7 +9,8 @@ const router = Router();
 router.get("/", async (req, res) => {
   const { instance_id } = req.query;
   const { rows } = await pool.query(
-    `SELECT c.*, i.name as instance_name, i.country, i.flag_emoji
+    `SELECT c.*, i.name as instance_name, i.country, i.flag_emoji,
+       (SELECT body FROM messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) as last_message_preview
      FROM conversations c
      JOIN instances i ON i.id = c.instance_id
      WHERE ($1::int IS NULL OR c.instance_id = $1)
