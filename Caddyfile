@@ -1,0 +1,14 @@
+179-198-120-137.sslip.io {
+	handle /webhooks/* {
+		reverse_proxy backend:4000
+	}
+	handle /api/* {
+		reverse_proxy backend:4000
+	}
+	handle /ws {
+		reverse_proxy backend:4000
+	}
+	handle {
+		reverse_proxy frontend:80
+	}
+}
