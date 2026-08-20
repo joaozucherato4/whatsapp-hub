@@ -22,8 +22,31 @@ router.post("/", async (req, res) => {
      VALUES ($1,$2,$3,$4,'connecting') RETURNING *`,
     [name, country, language, flag_emoji || null]
   );
+  const instance = rows[0];
 
-  res.json(rows[0]);
+  // Cria as 10 mensagens automaticas (5 eventos x 2 plataformas) isoladas so para esta instancia,
+  // copiando o texto padrao em portugues como ponto de partida (o usuario personaliza depois)
+  const defaults = [
+    ["hotmart", "purchase_approved", "Oi {first_name}! Sua compra foi aprovada com sucesso. Seja bem-vindo(a)!"],
+    ["hotmart", "purchase_canceled", "Oi {first_name}, notamos que sua compra foi cancelada. Podemos te ajudar?"],
+    ["hotmart", "cart_abandoned", "Oi {first_name}! Vi que voce nao finalizou sua compra. Posso te ajudar a concluir?"],
+    ["hotmart", "refund", "Oi {first_name}, confirmamos o reembolso da sua compra."],
+    ["hotmart", "chargeback", "Oi {first_name}, identificamos um chargeback na sua compra. Podemos conversar?"],
+    ["kiwify", "purchase_approved", "Oi {first_name}! Sua compra foi aprovada com sucesso. Seja bem-vindo(a)!"],
+    ["kiwify", "purchase_canceled", "Oi {first_name}, sua compra foi cancelada. Podemos te ajudar?"],
+    ["kiwify", "cart_abandoned", "Oi {first_name}! Voce deixou o carrinho pela metade, posso te ajudar a finalizar?"],
+    ["kiwify", "refund", "Oi {first_name}, seu reembolso foi confirmado."],
+    ["kiwify", "chargeback", "Oi {first_name}, identificamos um chargeback na sua compra."],
+  ];
+  for (const [platform, eventType, body] of defaults) {
+    await pool.query(
+      `INSERT INTO event_templates (platform, event_type, instance_id, message_body)
+       VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING`,
+      [platform, eventType, instance.id, body]
+    );
+  }
+
+  res.json(instance);
 });
 
 // Retorna o QR code atual pra escanear

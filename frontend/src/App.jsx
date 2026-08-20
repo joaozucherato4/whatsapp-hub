@@ -141,9 +141,10 @@ export default function App() {
               onClick={(e) => deleteInstance(inst, e)}
               title="Excluir instância"
               style={{
-                position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%",
-                background: "#e0555a", color: "white", fontSize: 10, display: "flex",
+                position: "absolute", top: -5, right: -5, width: 18, height: 18, borderRadius: "50%",
+                background: "#e0555a", color: "white", fontSize: 11, display: "flex",
                 alignItems: "center", justifyContent: "center", cursor: "pointer",
+                border: "2px solid var(--bg-deep)", fontWeight: 700, opacity: 0.9,
               }}
             >
               ×
@@ -153,7 +154,7 @@ export default function App() {
         <div className="instance-icon add" title="Nova instancia" onClick={() => setShowNewInstance(true)}>
           +
         </div>
-        <div className="instance-icon" title="Automações (Hotmart/Kiwify)" onClick={() => setShowAutomations(true)} style={{ marginTop: "auto", marginBottom: 12 }}>
+        <div className="instance-icon" title="Automações desta instância" onClick={() => activeInstance ? setShowAutomations(true) : alert("Selecione uma instância primeiro")} style={{ marginTop: "auto", marginBottom: 12 }}>
           ⚙
         </div>
       </div>
@@ -208,8 +209,8 @@ export default function App() {
         )}
       </div>
 
-      {showAutomations && (
-        <AutomationsModal instances={instances} onClose={() => setShowAutomations(false)} />
+      {showAutomations && activeInstance && (
+        <AutomationsModal instance={activeInstance} onClose={() => setShowAutomations(false)} />
       )}
 
       {showNewInstance && (
